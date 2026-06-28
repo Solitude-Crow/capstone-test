@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "gab-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "C:/capstone/frontend", "run", "dev", "--", "C:/capstone/frontend", "--port", "5173", "--strictPort"],
+      "port": 5173
+    }
+  ]
+}

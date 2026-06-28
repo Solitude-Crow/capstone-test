@@ -1,0 +1,798 @@
+/* ─────────────────────────────────────────────────────────────────
+   Tailwind CSS v4 — single @import replaces the three @tailwind directives
+   DaisyUI v5 is loaded as a Tailwind plugin via CSS @plugin
+   ───────────────────────────────────────────────────────────────── */
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: false; /* we define our own below */
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   THEME — replaces tailwind.config.js `theme.extend` in v4
+   All tokens are CSS custom properties; Tailwind reads them automatically.
+   ───────────────────────────────────────────────────────────────── */
+@theme {
+  /* Fonts */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-sans:    "Outfit", system-ui, sans-serif;
+  --font-mono:    "JetBrains Mono", monospace;
+
+  /* Custom color palette */
+  --color-navy-50:  #eef2ff;
+  --color-navy-100: #e0e7ff;
+  --color-navy-200: #c7d2fe;
+  --color-navy-400: #818cf8;
+  --color-navy-500: #1e3a5f;
+  --color-navy-600: #162d4a;
+  --color-navy-700: #0f2035;
+  --color-navy-800: #091525;
+  --color-navy-900: #050d18;
+
+  --color-jade-50:  #ecfdf5;
+  --color-jade-400: #34d399;
+  --color-jade-500: #10b981;
+  --color-jade-600: #059669;
+
+  /* ── Accent scale (jade/emerald) — used as bg-accent-50 etc. ──── */
+  --color-accent-50:  #ecfdf5;
+  --color-accent-100: #d1fae5;
+  --color-accent-200: #a7f3d0;
+  --color-accent-300: #6ee7b7;
+  --color-accent-400: #34d399;
+  --color-accent-500: #10b981;
+  --color-accent-600: #059669;
+  --color-accent-700: #047857;
+
+  /* ── Primary scale (navy #1E3A5F) ──────────────────────────────
+     CRITICAL: the codebase uses `primary-50…900` utility classes in
+     200+ places (bg-primary-500, ring-primary-300, text-primary-600…).
+     Tailwind v4 only generates those utilities if the matching
+     --color-primary-* token exists. Without these, every such class
+     silently produced NO color — e.g. the calendar's selected cell
+     (bg-primary-500 text-white) rendered as white-on-nothing. */
+  --color-primary-50:  #f0f5fa;
+  --color-primary-100: #dbe7f1;
+  --color-primary-200: #b9cee0;
+  --color-primary-300: #8badc9;
+  --color-primary-400: #527aa3;
+  --color-primary-500: #1e3a5f;
+  --color-primary-600: #1a3253;
+  --color-primary-700: #152840;
+  --color-primary-800: #101e30;
+  --color-primary-900: #0b1521;
+
+  /* ── Surface scale (cool slate neutrals) ───────────────────────
+     Used as bg-surface-100 / border-surface-200 etc. Mirrors slate. */
+  --color-surface-50:  #f8fafc;
+  --color-surface-100: #f1f5f9;
+  --color-surface-200: #e2e8f0;
+  --color-surface-300: #cbd5e1;
+  --color-surface-400: #94a3b8;
+
+  /* ── Cream accent (brand secondary #F8F6F1) ────────────────────
+     Used as a warm complementary accent (banners' soft panels,
+     empty states), NOT the global background. */
+  --color-cream-50:  #fdfcf9;
+  --color-cream-100: #f8f6f1;
+  --color-cream-200: #efeadd;
+  --color-cream-300: #e3dcc9;
+
+  /* ── Brand semantic colors (per GAB.AI spec) ───────────────────
+     Exposed as utilities (text-brand-success, bg-brand-error/10…). */
+  --color-brand-success: #16a34a;
+  --color-brand-warning: #f59e0b;
+  --color-brand-error:   #dc2626;
+  --color-brand-info:    #2563eb;
+
+  /* Extra breakpoint */
+  --breakpoint-xs: 480px;
+
+  /* Animations */
+  --animate-fade-in:   fadeIn 0.25s ease-out;
+  --animate-slide-up:  slideUp 0.3s ease-out;
+  --animate-slide-left:slideLeft 0.3s ease-out;
+  --animate-spin-once: spin 0.6s ease-in-out 1;
+
+  /* Keyframes (defined inline with @keyframes below) */
+  --keyframes-fadeIn:    fadeIn;
+  --keyframes-slideUp:   slideUp;
+  --keyframes-slideLeft: slideLeft;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   DaisyUI v5 custom theme — defined via CSS, not JS config
+   ───────────────────────────────────────────────────────────────── */
+@plugin "daisyui/theme" {
+  name: "mkd";
+  default: true;
+
+  --color-primary:         #1e3a5f;
+  --color-primary-content: #ffffff;
+  --color-secondary:       #10b981;
+  --color-secondary-content: #ffffff;
+  --color-accent:          #34d399;
+  --color-accent-content:  #ffffff;
+  --color-neutral:         #374151;
+  --color-neutral-content: #f9fafb;
+  --color-base-100:        #f8fafc;
+  --color-base-200:        #f1f5f9;
+  --color-base-300:        #e2e8f0;
+  --color-base-content:    #1e293b;
+  --color-info:            #2563eb;
+  --color-success:         #16a34a;
+  --color-warning:         #f59e0b;
+  --color-error:           #dc2626;
+
+  --radius-btn:   0.75rem;
+  --radius-box:   1rem;
+  --radius-badge: 99px;
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Keyframes
+   ───────────────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Base styles
+   ───────────────────────────────────────────────────────────────── */
+@layer base {
+  html { font-family: var(--font-sans); }
+
+  body {
+    background-color: var(--color-base-100);
+    color: var(--color-base-content);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-family: var(--font-display); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar        { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track  { background: var(--color-base-200); }
+  ::-webkit-scrollbar-thumb  { background: var(--color-base-300); border-radius: 9999px; }
+
+  /* Form defaults — replaces @tailwindcss/forms which isn't v4-ready yet */
+  input, select, textarea {
+    font-family: var(--font-sans);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Component layer — reusable CSS classes used across all pages.
+   In v4 you still use @layer components; the syntax is unchanged.
+   ───────────────────────────────────────────────────────────────── */
+@layer components {
+
+  /* ── Layout ─────────────────────────────────────────────────── */
+  .page-root {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--color-base-100);
+  }
+
+  /* ── Sidebar ──────────────────────────────────────────────────
+     --sidebar-w and --sidebar-collapsed are used by AppLayout.jsx
+     as Tailwind arbitrary values: ml-[--sidebar-w]
+     In v4, CSS vars work directly in arbitrary values without the
+     var() wrapper inside brackets.
+  */
+  :root {
+    --sidebar-w: 236px;          /* trimmed from 260px to reclaim content space */
+    --sidebar-collapsed-w: 72px;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset-block: 0;
+    left: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-navy-500);
+    color: white;
+    box-shadow: 2px 0 20px rgb(0 0 0 / 0.08);
+    transition: width 300ms ease, transform 300ms ease;
+    width: var(--sidebar-w);
+  }
+  .sidebar.collapsed { width: var(--sidebar-collapsed-w); }
+  .sidebar.mobile-hidden { transform: translateX(-100%); }
+
+  .sidebar-logo-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1rem;
+    border-bottom: 1px solid rgb(255 255 255 / 0.1);
+    gap: 0.75rem;
+  }
+  .sidebar-logo-icon {
+    width: 2.25rem; height: 2.25rem;
+    border-radius: 0.75rem;
+    background: rgb(255 255 255 / 0.15);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    margin: 0.125rem 0.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(255 255 255 / 0.7);
+    transition: background-color 150ms, color 150ms;
+    text-decoration: none;
+  }
+  .sidebar-nav-link:hover {
+    background-color: rgb(255 255 255 / 0.1);
+    color: white;
+  }
+  .sidebar-nav-link.active {
+    background-color: rgb(255 255 255 / 0.15);
+    color: white;
+  }
+  .sidebar-icon-wrap {
+    width: 2.25rem; height: 2.25rem;
+    border-radius: 0.625rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Topbar ───────────────────────────────────────────────── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.25rem;
+    background-color: white;
+    border-bottom: 1px solid var(--color-base-200);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.04);
+  }
+
+  /* ── Page content ─────────────────────────────────────────────
+     Default content width = "large" (1400px). Pages opt into a
+     narrower/wider container by wrapping their content in:
+       .container-sm (800)   .container-md (1100)
+       .container-lg (1400)  .container-full (100%)
+     Padding follows the 8-point scale: 16 → 24 → 32. */
+  .page-inner {
+    padding: 1rem;
+    width: 100%;
+    max-width: 1400px;
+    margin-inline: auto;
+  }
+  @media (min-width: 640px)  { .page-inner { padding: 1.5rem; } }
+  @media (min-width: 1024px) { .page-inner { padding: 2rem; } }
+
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-full { width: 100%; margin-inline: auto; }
+  .container-sm   { max-width: 800px;  }
+  .container-md   { max-width: 1100px; }
+  .container-lg   { max-width: 1400px; }
+  .container-full { max-width: 100%;   }
+
+  /* ── Page header ──────────────────────────────────────────── */
+  .page-header {
+    margin-bottom: 1rem;
+  }
+  .page-title {
+    font-family: var(--font-display);
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+  }
+  @media (min-width: 640px) { .page-title { font-size: 1.5rem; } }
+  .page-subtitle {
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 0.125rem;
+  }
+
+  /* ── Stat card ────────────────────────────────────────────── */
+  .stat-card {
+    background-color: white;
+    border-radius: 0.875rem;
+    border: 1px solid var(--color-base-200);
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.04), 0 2px 8px rgb(0 0 0 / 0.03);
+    padding: 0.875rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .stat-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.625rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Page banner ──────────────────────────────────────────── */
+  .page-banner {
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5282 100%);
+  }
+  @media (min-width: 640px)  { .page-banner { padding: 2rem; } }
+  @media (min-width: 1024px) { .page-banner { padding: 2.25rem 2.5rem; } }
+  .page-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0.08;
+    background-image: radial-gradient(circle, white 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  /* ── Cards ────────────────────────────────────────────────── */
+  .mkd-card {
+    background-color: white;
+    border-radius: 1rem;
+    border: 1px solid var(--color-base-200);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.06), 0 4px 16px rgb(0 0 0 / 0.04);
+    padding: 1.5rem;
+  }
+  @media (min-width: 1024px) { .mkd-card { padding: 2rem; } }
+
+  .mkd-card-hover {
+    background-color: white;
+    border-radius: 1rem;
+    border: 1px solid var(--color-base-200);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.06), 0 4px 16px rgb(0 0 0 / 0.04);
+    padding: 1.5rem;
+    transition: box-shadow 200ms, transform 200ms;
+    cursor: pointer;
+  }
+  @media (min-width: 1024px) { .mkd-card-hover { padding: 2rem; } }
+  .mkd-card-hover:hover {
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.10), 0 8px 32px rgb(0 0 0 / 0.06);
+    transform: translateY(-2px);
+  }
+
+  /* ── DaisyUI .card surface ─────────────────────────────────────
+     DaisyUI v5's bare .card only sets border-radius + flex (its
+     background/border/padding live on .card-body). But this app uses
+     <div className="card"> with content placed directly inside,
+     expecting a padded white surface — without this, 40+ sections
+     across the app render as transparent, border-less, unpadded
+     blocks (a major source of the "undefined sections / excess
+     whitespace" feel). Promote .card to a full surface here; skip
+     the auto-padding when a .card-body child is present so the
+     canonical DaisyUI card+card-body pattern is preserved. */
+  .card {
+    background-color: white;
+    border: 1px solid var(--color-base-200);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.06), 0 4px 16px rgb(0 0 0 / 0.04);
+  }
+  .card:not(:has(> .card-body)) { padding: 1.5rem; }
+  @media (min-width: 1024px) {
+    .card:not(:has(> .card-body)) { padding: 2rem; }
+  }
+
+  /* ── Form fields ──────────────────────────────────────────── */
+  .field-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.375rem;
+  }
+  /* field-input/select/textarea — DaisyUI v5 dropped *-bordered modifiers,
+     border is now always present on input/select/textarea by default */
+  .field-input    { @apply input w-full bg-white text-sm; }
+  .field-select   { @apply select w-full bg-white text-sm; }
+  .field-textarea { @apply textarea w-full bg-white text-sm resize-none; }
+
+  /* Unified border states: slate default, primary on focus, red on error.
+     Applied on top of DaisyUI's input/select/textarea base. */
+  .field-input,
+  .field-select,
+  .field-textarea {
+    border: 1px solid var(--color-surface-200);
+    transition: border-color 150ms, box-shadow 150ms;
+  }
+  .field-input:focus,
+  .field-select:focus,
+  .field-textarea:focus {
+    border-color: var(--color-primary-500);
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary-500) 16%, transparent);
+  }
+  .field-input.field-error,
+  .field-select.field-error,
+  .field-textarea.field-error {
+    border-color: var(--color-brand-error);
+  }
+  .field-input.field-error:focus,
+  .field-select.field-error:focus,
+  .field-textarea.field-error:focus {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-error) 16%, transparent);
+  }
+
+  /* ── Selectable option card ───────────────────────────────────
+     For student-selection, referral options, assessment categories.
+     States: default (slate) → hover (primary tint) → selected
+     (primary border + tinted bg + check) → error (red border). */
+  .select-card {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    width: 100%;
+    text-align: left;
+    padding: 1rem 1.125rem;
+    border-radius: 0.875rem;
+    border: 2px solid var(--color-surface-200);
+    background-color: white;
+    cursor: pointer;
+    transition: border-color 150ms, background-color 150ms, box-shadow 150ms;
+  }
+  .select-card:hover {
+    border-color: var(--color-primary-300);
+    background-color: var(--color-primary-50);
+  }
+  .select-card.selected {
+    border-color: var(--color-primary-500);
+    background-color: var(--color-primary-50);
+    box-shadow: 0 0 0 1px var(--color-primary-500);
+  }
+  .select-card.error { border-color: var(--color-brand-error); }
+
+  /* Check indicator that appears on selected option/checkbox cards */
+  .select-check {
+    width: 1.375rem;
+    height: 1.375rem;
+    border-radius: 0.5rem;
+    border: 2px solid var(--color-surface-300);
+    background-color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 150ms;
+    color: transparent;
+  }
+  .select-check.round { border-radius: 9999px; }
+  .select-card.selected .select-check,
+  .select-check.checked {
+    border-color: var(--color-primary-500);
+    background-color: var(--color-primary-500);
+    color: white;
+  }
+
+  /* ── Wizard step glow (active step outer ring) ────────────────── */
+  .wizard-glow {
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--color-primary-500) 20%, transparent),
+      0 6px 16px color-mix(in srgb, var(--color-primary-500) 28%, transparent);
+  }
+
+  /* ── Unified badge system ─────────────────────────────────────
+     Roomy, consistent pills. Status labels: ~28px tall, 12px
+     horizontal / 5px vertical padding, 6px icon-text gap, fully
+     rounded, centered. Self-contained (no DaisyUI .badge) so sizing
+     is predictable across every page. */
+  .badge-pending, .badge-accepted, .badge-rejected,
+  .badge-cancelled, .badge-completed, .badge-rescheduled,
+  .badge-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;                 /* 6px icon ↔ text */
+    min-height: 1.75rem;           /* 28px */
+    padding: 0.3125rem 0.75rem;    /* 5px / 12px */
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+    text-transform: capitalize;
+    border: 1px solid transparent;
+  }
+  .badge-pending    { background-color: #fef3c7; color: #b45309; border-color: #fde68a; }
+  .badge-accepted   { background-color: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+  .badge-rejected   { background-color: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+  .badge-cancelled  { background-color: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+  .badge-completed  { background-color: #dbeafe; color: #1d4ed8; border-color: #bfdbfe; }
+  .badge-rescheduled{ background-color: #d1fae5; color: #047857; border-color: #a7f3d0; }
+
+  /* Numeric counter badge (notification counts, tab counts) —
+     min 22px box, centered digits, never squeezed. */
+  .badge-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.375rem;           /* 22px */
+    height: 1.375rem;
+    padding: 0 0.4375rem;          /* 7px */
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .badge-count-sm { min-width: 1.125rem; height: 1.125rem; padding: 0 0.3125rem; font-size: 0.625rem; }
+
+  /* ── Time slot pill ───────────────────────────────────────── */
+  .slot-pill {
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    border: 2px solid var(--color-base-300);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 150ms, background-color 150ms;
+  }
+  .slot-pill:hover {
+    border-color: var(--color-primary);
+    background-color: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  }
+  .slot-pill.selected {
+    border-color: var(--color-primary);
+    background-color: var(--color-primary);
+    color: white;
+  }
+  .slot-pill.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* ── White button (used inside dark page-banner backgrounds) ─ */
+  .btn-white {
+    background-color: white;
+    color: #374151;
+    border-color: transparent;
+  }
+  .btn-white:hover {
+    background-color: #f1f5f9;
+    border-color: transparent;
+  }
+
+  /* ── .card-hover surface (used as a clickable card) ───────────
+     Not a DaisyUI class — define it so the dashboards' quick-action
+     and list cards render as proper interactive surfaces. */
+  .card-hover {
+    background-color: white;
+    border-radius: 1rem;
+    border: 1px solid var(--color-base-200);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.06), 0 4px 16px rgb(0 0 0 / 0.04);
+    padding: 1.25rem 1.5rem;
+    transition: box-shadow 200ms, transform 200ms;
+    cursor: pointer;
+  }
+  .card-hover:hover {
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.10), 0 8px 32px rgb(0 0 0 / 0.06);
+    transform: translateY(-2px);
+  }
+
+  /* ── Fallback for DaisyUI color modifiers used WITHOUT base .btn ─
+     DaisyUI v5's .btn-primary/.btn-ghost/etc. only set --btn-color/
+     --btn-fg vars consumed by the .btn base — used alone they render
+     unstyled. Several pages use `className="btn-primary"` without the
+     base class, so give those a proper button appearance. Real
+     `.btn ...` usages are excluded via :not(.btn) and untouched. */
+  .btn-primary:not(.btn),
+  .btn-secondary:not(.btn),
+  .btn-error:not(.btn),
+  .btn-ghost:not(.btn),
+  .btn-outline:not(.btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    min-height: 2.5rem;
+    border-radius: var(--radius-btn, 0.75rem);
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1.1;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: filter 150ms, background-color 150ms, border-color 150ms;
+  }
+  .btn-primary:not(.btn)   { background-color: var(--color-primary);   color: var(--color-primary-content); }
+  .btn-secondary:not(.btn) { background-color: var(--color-secondary); color: var(--color-secondary-content); }
+  .btn-error:not(.btn)     { background-color: var(--color-error);     color: #fff; }
+  .btn-primary:not(.btn):hover,
+  .btn-secondary:not(.btn):hover,
+  .btn-error:not(.btn):hover { filter: brightness(0.93); }
+  .btn-ghost:not(.btn)     { background-color: transparent; color: var(--color-base-content); }
+  .btn-ghost:not(.btn):hover { background-color: var(--color-base-200); }
+  .btn-outline:not(.btn)   { background-color: transparent; border-color: var(--color-surface-300); color: var(--color-base-content); }
+  .btn-outline:not(.btn):hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+  /* ── Filter tabs ──────────────────────────────────────────── */
+  .filter-tabs { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .filter-tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.25rem;           /* 36px — comfortable tap target */
+    padding: 0.4375rem 0.875rem;   /* 7px / 14px */
+    border-radius: 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    text-transform: capitalize;
+    transition: all 150ms;
+    border: 1px solid var(--color-base-300);
+    background-color: white;
+    color: #4b5563;
+    cursor: pointer;
+  }
+  .filter-tab:hover { border-color: color-mix(in srgb, var(--color-primary) 40%, transparent); }
+  .filter-tab.active {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+  }
+
+  /* ── Empty state ──────────────────────────────────────────── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    text-align: center;
+  }
+  .empty-state-icon {
+    width: 3.5rem; height: 3.5rem;
+    border-radius: 1rem;
+    background-color: var(--color-base-200);
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ── Sidebar overlay (mobile) ─────────────────────────────── */
+  .sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgb(0 0 0 / 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 20;
+  }
+  @media (min-width: 1024px) { .sidebar-overlay { display: none; } }
+
+  /* ── Mobile FAB ───────────────────────────────────────────── */
+  .mobile-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    bottom: 1.25rem;
+    right: 1.25rem;
+    z-index: 40;
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 9999px;
+    background-color: var(--color-primary);
+    color: white;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.2);
+    transition: transform 150ms, box-shadow 150ms;
+  }
+  .mobile-fab:hover { transform: scale(1.05); }
+  @media (min-width: 1024px) { .mobile-fab { display: none; } }
+
+  /* ── Stat widget ──────────────────────────────────────────── */
+  .stat-widget {
+    background-color: white;
+    border-radius: 1rem;
+    border: 1px solid var(--color-base-200);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.06), 0 4px 16px rgb(0 0 0 / 0.04);
+    padding: 1.25rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .stat-widget-icon {
+    width: 3rem; height: 3rem;
+    border-radius: 0.75rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  /* ── Table wrapper ────────────────────────────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-base-200);
+  }
+
+  /* ── Week day cell ────────────────────────────────────────── */
+  .week-day-cell {
+    background-color: white;
+    border-radius: 1rem;
+    border: 1px solid var(--color-base-200);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.06), 0 4px 16px rgb(0 0 0 / 0.04);
+    padding: 0.75rem;
+    transition: all 200ms;
+  }
+  @media (min-width: 640px) { .week-day-cell { padding: 1rem; } }
+  .week-day-cell.today { outline: 2px solid var(--color-primary); }
+  /* PH holiday — guidance office closed */
+  .week-day-holiday {
+    border-color: #fecaca;       /* red-200 */
+    background-color: #fef2f2;   /* red-50 */
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Animation utilities — in v4 you register them via @utility
+   instead of extending safelist or using @layer utilities
+   ───────────────────────────────────────────────────────────────── */
+@utility animate-fade-in   { animation: fadeIn 0.25s ease-out; }
+@utility animate-slide-up  { animation: slideUp 0.3s ease-out; }
+@utility animate-slide-left{ animation: slideLeft 0.3s ease-out; }
+@utility animate-spin-once { animation: spin 0.6s ease-in-out 1; }
+
+/* ─────────────────────────────────────────────────────────────────
+   React-DatePicker overrides
+   ───────────────────────────────────────────────────────────────── */
+.react-datepicker-wrapper,
+.react-datepicker__input-container { width: 100%; }
+
+.react-datepicker {
+  font-family: var(--font-sans) !important;
+  border: 1px solid var(--color-base-300) !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 24px 64px rgb(0 0 0 / 0.15) !important;
+  font-size: 0.875rem !important;
+}
+.react-datepicker__header {
+  background-color: #1e3a5f !important;
+  border-radius: 1rem 1rem 0 0 !important;
+  border-bottom: none !important;
+  padding: 0.75rem 0.5rem 0.5rem !important;
+}
+.react-datepicker__current-month,
+.react-datepicker__day-name { color: white !important; font-weight: 600 !important; }
+.react-datepicker__navigation-icon::before { border-color: white !important; }
+
+.react-datepicker__day--selected,
+.react-datepicker__day--keyboard-selected {
+  background-color: #1e3a5f !important;
+  color: white !important;
+  border-radius: 0.5rem !important;
+}
+.react-datepicker__day:hover {
+  background-color: #e0e7ff !important;
+  border-radius: 0.5rem !important;
+}
+.react-datepicker__day--disabled { opacity: 0.35 !important; }
+.react-datepicker__day--highlighted {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border-radius: 0.5rem !important;
+  font-weight: 700 !important;
+}
+/* PH holiday — guidance office closed (booking/reschedule date pickers) */
+.react-datepicker__day.ph-holiday-day {
+  color: #ef4444 !important;   /* red-500 */
+  font-weight: 600 !important;
+}

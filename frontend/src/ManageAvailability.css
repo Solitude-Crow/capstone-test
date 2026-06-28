@@ -1,0 +1,3 @@
+.page-inner {
+max-width: 90rem;   /* was 72rem — widened to fit 5 day cards */
+}

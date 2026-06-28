@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"C:\\\\capstone\\\\backend\\\\src\" -Recurse -Force | Select-Object FullName, @{Name=\"Type\";Expression={if\\($_.PSIsContainer\\){\"DIR\"}else{\"FILE\"}}} | Sort-Object FullName)",
+      "PowerShell(npm --prefix C:\\\\capstone\\\\frontend run lint 2>&1)"
+    ]
+  }
+}

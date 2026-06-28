@@ -1,0 +1,81 @@
+# Render Blueprint — single Web Service that builds the React frontend and
+# serves it from the Express backend (same origin).
+#
+# To deploy: push this repo to GitHub, then in Render choose
+# "New +" → "Blueprint" and point it at the repo. Render reads this file.
+# Fill in every var marked `sync: false` in the dashboard (they are secrets and
+# are intentionally NOT stored in git).
+services:
+  - type: web
+    name: gabai
+    runtime: node
+    plan: free
+    region: singapore            # closest Render region to the Philippines
+    branch: main
+    healthCheckPath: /api/health
+    buildCommand: >-
+      npm install --prefix backend &&
+      npm install --prefix frontend --include=dev &&
+      npm run build --prefix frontend
+    startCommand: npm start --prefix backend
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "20"
+
+      # ── Database (MongoDB Atlas) ──────────────────────────────────────────
+      - key: MONGODB_URI
+        sync: false
+
+      # ── Auth ──────────────────────────────────────────────────────────────
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_EXPIRES_IN
+        value: 7d
+
+      # ── App URL ───────────────────────────────────────────────────────────
+      # Set this to your live Render URL, e.g. https://mkd-guidance.onrender.com
+      - key: CLIENT_URL
+        sync: false
+
+      # ── Cloudinary (profile photos) ───────────────────────────────────────
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      # ── Email (Nodemailer / Gmail) ────────────────────────────────────────
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
+        sync: false
+
+      # ── AI (Google Gemini) ────────────────────────────────────────────────
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
+        sync: false
+
+      # ── Google sign-in ────────────────────────────────────────────────────
+      # GOOGLE_CLIENT_ID is used by the backend to verify ID tokens.
+      # VITE_GOOGLE_CLIENT_ID is read at BUILD TIME by the frontend — it must be
+      # present for the "Continue with Google" button to render.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: VITE_GOOGLE_CLIENT_ID
+        sync: false
+
+      # ── Rate limiting ─────────────────────────────────────────────────────
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_MAX
+        value: "500"
