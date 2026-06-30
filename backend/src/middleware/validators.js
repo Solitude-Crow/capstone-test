@@ -17,7 +17,7 @@ export const signupValidator = [
     .trim()
     .isLength({ min: 2, max: 100 })
     .withMessage("Full name must be 2–100 characters")
-    .matches(/^[a-zA-Z\s'-]+$/)
+    .matches(/^[\p{L}\s'-]+$/u)
     .withMessage("Full name contains invalid characters"),
   body("password")
     .isLength({ min: 8 })

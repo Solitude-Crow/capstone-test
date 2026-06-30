@@ -362,7 +362,7 @@ export const updateMyProfile = async (req, res) => {
       if (trimmed.length < 2 || trimmed.length > 100) {
         return res.status(400).json({ message: "Full name must be 2–100 characters." });
       }
-      if (!/^[a-zA-Z\s'-]+$/.test(trimmed)) {
+      if (!/^[\p{L}\s'-]+$/u.test(trimmed)) {
         return res.status(400).json({ message: "Full name contains invalid characters." });
       }
       updates.fullName = trimmed;

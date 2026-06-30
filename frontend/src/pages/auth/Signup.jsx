@@ -43,6 +43,48 @@ const DEPARTMENTS = [
 
 ]
 
+// ── Password requirements ─────────────────────────────────────────────────────
+// These MUST stay in sync with the backend signupValidator (validators.js):
+//   .isLength({ min: 8 }) and .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+// If they drift apart, a password that passes here gets rejected server-side
+// with a generic "Validation failed" error.
+const PASSWORD_RULES = [
+  { key: 'length', label: 'At least 8 characters',       test: (p) => p.length >= 8 },
+  { key: 'upper',  label: 'One uppercase letter (A–Z)',  test: (p) => /[A-Z]/.test(p) },
+  { key: 'lower',  label: 'One lowercase letter (a–z)',  test: (p) => /[a-z]/.test(p) },
+  { key: 'number', label: 'One number (0–9)',            test: (p) => /\d/.test(p) },
+]
+
+const isPasswordValid = (pw = '') => PASSWORD_RULES.every((r) => r.test(pw))
+
+// Live checklist shown beneath the password field. Each item turns green once met.
+function PasswordRequirements({ value = '' }) {
+  return (
+    <ul className="mt-2 space-y-1" aria-label="Password requirements">
+      {PASSWORD_RULES.map((rule) => {
+        const ok = rule.test(value)
+        return (
+          <li
+            key={rule.key}
+            className={`flex items-center gap-1.5 text-xs transition-colors ${
+              ok ? 'text-brand-success' : 'text-base-content/50'
+            }`}
+          >
+            <span
+              className={`flex items-center justify-center w-3.5 h-3.5 rounded-full shrink-0 ${
+                ok ? 'bg-brand-success text-white' : 'border border-base-content/30'
+              }`}
+            >
+              {ok && <Check size={10} strokeWidth={3} />}
+            </span>
+            {rule.label}
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
 // ── Step indicator ────────────────────────────────────────────────────────────
 function StepIndicator({ steps, current }) {
   return (
@@ -164,9 +206,7 @@ function AccountStep({ form, onChange, showPass, onTogglePass }) {
             {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
-        {form.password && form.password.length < 8 && (
-          <p className="text-xs text-error mt-1">Password must be at least 8 characters</p>
-        )}
+        <PasswordRequirements value={form.password} />
       </div>
     </div>
   )
@@ -309,7 +349,7 @@ export default function Signup() {
 
   const canNext = () => {
     if (step === 0) return !!form.role
-    if (step === 1) return form.fullName && form.email && form.password.length >= 8
+    if (step === 1) return form.fullName && form.email && isPasswordValid(form.password)
     // Step 2 — role-specific required fields
     if (form.role === 'student')   return form.studentIDnum && form.yearLevel && form.course
     if (form.role === 'counselor') return !!form.specialization.trim()
