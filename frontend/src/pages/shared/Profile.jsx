@@ -164,17 +164,19 @@ export default function Profile() {
   }
 
   return (
-    <div className="animate-fade-in w-full max-w-xl mx-auto">
+    <div className="animate-fade-in w-full max-w-xl lg:max-w-5xl mx-auto">
       <div className="page-header">
         <h1 className="page-title">My Profile</h1>
         <p className="page-subtitle">Manage your account information and security</p>
       </div>
 
-      {/* Avatar */}
+      {/* Identity header — a compact, full-width banner. Laying the avatar out
+          horizontally (instead of a tall centered card) reclaims the vertical
+          space that used to push the lower cards off-screen on desktop. */}
       <div className="card mb-3">
-        <div className="flex flex-col items-center py-2">
-          <div className="relative group mb-2">
-            <Avatar name={user?.fullName} src={user?.profilePic} size="xl" />
+        <div className="flex items-center gap-4">
+          <div className="relative group shrink-0">
+            <Avatar name={user?.fullName} src={user?.profilePic} size="lg" />
             <button
               onClick={() => fileRef.current?.click()}
               disabled={uploading}
@@ -185,15 +187,24 @@ export default function Profile() {
               {uploading ? (
                 <span className="w-5 h-5 border-2 border-white/40 border-t-white rounded-full animate-spin" />
               ) : (
-                <Camera size={18} className="text-white" />
+                <Camera size={16} className="text-white" />
               )}
             </button>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
           </div>
-          <h2 className="font-display text-xl text-slate-900">{user?.fullName}</h2>
-          <p className="text-sm text-slate-500 capitalize mt-0.5">{user?.role}</p>
+          <div className="min-w-0">
+            <h2 className="font-display text-xl text-slate-900 truncate">{user?.fullName}</h2>
+            <p className="text-sm text-slate-500 capitalize mt-0.5">{user?.role}</p>
+          </div>
         </div>
       </div>
+
+      {/* On laptop/desktop the cards flow into two balanced columns so the
+          profile fits the viewport without scrolling. On mobile/tablet it
+          collapses back to a single scrollable column in the original order. */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-x-6 lg:items-start">
+      {/* ── Left column ─────────────────────────────────────────────────── */}
+      <div>
 
       {/* Account details */}
       <div className="card mb-3">
@@ -274,6 +285,11 @@ export default function Profile() {
 
       {/* Email verification */}
       <EmailVerifyCard />
+
+      </div>{/* ── End left column ─────────────────────────────────────── */}
+
+      {/* ── Right column ────────────────────────────────────────────────── */}
+      <div>
 
       {/* Change password — local accounts only (Google accounts have no password) */}
       {user?.provider !== 'google' && (
@@ -372,6 +388,9 @@ export default function Profile() {
           <ChevronRight size={16} className="text-slate-400 shrink-0" />
         </button>
       </div>
+
+      </div>{/* ── End right column ────────────────────────────────────── */}
+      </div>{/* ── End two-column grid ─────────────────────────────────── */}
 
       <PrivacyNotice open={showPrivacy} readOnly onClose={() => setShowPrivacy(false)} />
     </div>

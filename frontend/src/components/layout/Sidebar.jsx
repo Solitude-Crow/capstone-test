@@ -129,11 +129,19 @@ export default function Sidebar({ collapsed, onToggle, mobileOpen, onMobileClose
                   `sidebar-nav-link ${isActive ? 'active' : ''} ${collapsed ? 'justify-center px-0 mx-3' : ''}`
                 }
               >
-                <div className={`sidebar-icon-wrap ${collapsed ? 'w-10 h-10' : ''}`}>
+                <div className={`sidebar-icon-wrap relative ${collapsed ? 'w-10 h-10' : ''}`}>
                   <Icon size={18} />
+                  {/* Collapsed rail: overlay the count on the icon corner so the
+                      icon stays centered instead of being shoved aside. */}
+                  {isNotif && unreadCount > 0 && collapsed && (
+                    <span className="badge-count-sm bg-error text-white absolute -top-0.5 -right-0.5">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
                 </div>
                 {!collapsed && <span className="flex-1 text-sm">{label}</span>}
-                {isNotif && unreadCount > 0 && (
+                {/* Expanded rail: count sits at the trailing edge of the row. */}
+                {isNotif && unreadCount > 0 && !collapsed && (
                   <span className="badge-count bg-error text-white shrink-0">
                     {unreadCount > 99 ? '99+' : unreadCount}
                   </span>
