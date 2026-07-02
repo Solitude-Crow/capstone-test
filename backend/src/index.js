@@ -57,10 +57,13 @@ app.use(
         // Google Identity Services serves its sign-in button / One Tap from
         // accounts.google.com — required now that Express serves the SPA itself.
         scriptSrc:  ["'self'", "https://accounts.google.com/gsi/client"],
-        styleSrc:   ["'self'", "'unsafe-inline'", "https://accounts.google.com/gsi/style"],
+        // The GSI button script injects Google Fonts <link> tags into the host
+        // page, so fonts.googleapis.com (stylesheet) + fonts.gstatic.com (font
+        // files) must be allowed or the browser blocks them via style-src/font-src.
+        styleSrc:   ["'self'", "'unsafe-inline'", "https://accounts.google.com/gsi/style", "https://fonts.googleapis.com"],
         imgSrc:     ["'self'", "data:", "https://res.cloudinary.com", "https://*.googleusercontent.com"],
         connectSrc: ["'self'", "https://accounts.google.com/gsi/"],
-        fontSrc:    ["'self'", "data:"],
+        fontSrc:    ["'self'", "data:", "https://fonts.gstatic.com"],
         objectSrc:  ["'none'"],
         mediaSrc:   ["'self'"],
         frameSrc:   ["'self'", "https://accounts.google.com/gsi/"],
