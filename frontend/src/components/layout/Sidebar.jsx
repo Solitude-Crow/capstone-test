@@ -16,10 +16,12 @@ const ICON_MAP = {
   FileText, BarChart3, Users, History,
 }
 
+// "Book Appointment" is intentionally absent — students book straight from the
+// dashboard calendar (the /student/book route still exists for deep links).
 const STUDENT_LINKS = [
   { to: '/student/dashboard',      icon: 'LayoutDashboard', label: 'Dashboard' },
-  { to: '/student/book',           icon: 'CalendarDays',    label: 'Book Appointment' },
   { to: '/student/appointments',   icon: 'ClipboardList',   label: 'My Appointments' },
+  { to: '/student/referrals',      icon: 'Users',           label: 'My Referrals' },
   { to: '/student/pre-assessments',icon: 'FileText',        label: 'Pre-Assessments' },
   { to: '/student/notifications',  icon: 'Bell',            label: 'Notifications' },
   { to: '/student/profile',        icon: 'User',            label: 'Profile' },

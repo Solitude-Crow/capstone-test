@@ -164,7 +164,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="animate-fade-in max-w-xl">
+    <div className="animate-fade-in w-full max-w-xl mx-auto">
       <div className="page-header">
         <h1 className="page-title">My Profile</h1>
         <p className="page-subtitle">Manage your account information and security</p>

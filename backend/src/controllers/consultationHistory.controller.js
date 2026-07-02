@@ -37,6 +37,12 @@ export const getStudentConsultationHistory = async (req, res) => {
     const [appointments, totalAppts, referrals] = await Promise.all([
       Appointment.find(apptQuery)
         .populate("counselorId", "fullName email specialization")
+        // Source metadata — referralId present ⇒ appointment came from a faculty referral
+        .populate({
+          path: "referralId",
+          select: "facultyId priorityLevel status",
+          populate: { path: "facultyId", select: "fullName department" },
+        })
         .sort({ date: -1 })
         .skip(skip)
         .limit(Number(limit))

@@ -42,10 +42,10 @@ export default function PreAssessmentResults() {
   // New engine results
   if (ar) {
     return (
-      <div className="animate-fade-in max-w-2xl">
+      <div className="animate-fade-in w-full max-w-2xl mx-auto">
         {/* Header */}
-        <div className="page-header">
-          <div className="flex items-center gap-3 mb-1">
+        <div className="page-header text-center">
+          <div className="flex items-center justify-center gap-3 mb-1">
             <div className="w-9 h-9 rounded-xl bg-primary-100 flex items-center justify-center">
               <Brain size={18} className="text-primary-600" />
             </div>
@@ -82,20 +82,20 @@ export default function PreAssessmentResults() {
               urgencyLevel === 'Moderate'  ? 'bg-amber-100 text-amber-700' :
                                              'bg-slate-100 text-slate-600'
             }`}>
-              {urgencyLevel} Urgency
+              Self-Reported: {urgencyLevel}
             </span>
           </div>
         )}
 
         {/* SUGGESTIVE INSIGHTS label */}
-        <div className="mb-2">
+        <div className="mb-3 text-center">
           <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
             Preliminary Guidance Support Information
           </span>
         </div>
 
         {/* Detected Category + Risk Level */}
-        <div className="grid grid-cols-2 gap-3 mb-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
             <div className="flex items-center gap-2 mb-2">
               <Tag size={14} className="text-primary-500" />
@@ -219,7 +219,7 @@ export default function PreAssessmentResults() {
   // ── Legacy fallback: old AI format or no results ────────────────────────────
   if (legacy) {
     return (
-      <div className="animate-fade-in max-w-2xl">
+      <div className="animate-fade-in w-full max-w-2xl mx-auto">
         <div className="page-header">
           <h1 className="page-title">Assessment Results</h1>
           <p className="page-subtitle">Based on your responses</p>
@@ -278,7 +278,7 @@ export default function PreAssessmentResults() {
 
   // ── No results at all (AI unavailable and no engine result) ─────────────────
   return (
-    <div className="animate-fade-in max-w-2xl">
+    <div className="animate-fade-in w-full max-w-2xl mx-auto">
       <div className="page-header">
         <h1 className="page-title">Assessment Submitted</h1>
       </div>

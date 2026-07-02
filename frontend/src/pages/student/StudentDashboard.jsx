@@ -370,8 +370,10 @@ export default function StudentDashboard() {
           </div>
         )}
 
-        {/* ── Quick actions ── */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* ── Quick actions ──
+            Booking happens from the interactive calendar below, so there is no
+            separate "Book an Appointment" CTA here. */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
           <Link to="/student/pre-assessment" className="card-hover group flex items-center gap-4">
             <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center group-hover:bg-violet-100 transition-colors">
               <ClipboardList size={22} className="text-violet-600" />
@@ -381,17 +383,6 @@ export default function StudentDashboard() {
               <p className="text-xs text-slate-500 mt-0.5">Get a personalized recommendation</p>
             </div>
             <ArrowRight size={16} className="text-slate-400 group-hover:text-violet-500 transition-colors" />
-          </Link>
-
-          <Link to="/student/book" className="card-hover group flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center group-hover:bg-primary-100 transition-colors">
-              <CalendarDays size={22} className="text-primary-500" />
-            </div>
-            <div className="flex-1">
-              <p className="font-semibold text-slate-800">Book an Appointment</p>
-              <p className="text-xs text-slate-500 mt-0.5">Schedule a session with a counselor</p>
-            </div>
-            <ArrowRight size={16} className="text-slate-400 group-hover:text-primary-500 transition-colors" />
           </Link>
 
           <Link to="/student/appointments" className="card-hover group flex items-center gap-4">

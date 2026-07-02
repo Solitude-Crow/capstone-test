@@ -12,6 +12,7 @@ import { appointmentAPI } from '@/api'
 import { formatTime, formatDate, STATUS_CLASS } from '@/lib/utils'
 import PageBanner  from '@/components/ui/PageBanner'
 import FilterTabs  from '@/components/ui/FilterTabs'
+import AppointmentSourceBadge from '@/components/ui/AppointmentSourceBadge'
 import EmptyState  from '@/components/ui/EmptyState'
 import Avatar      from '@/components/ui/Avatar'
 
@@ -87,7 +88,10 @@ const AppointmentCard = memo(function AppointmentCard({
               {counselor?.fullName ?? '—'}
             </p>
           </div>
-          <StatusBadge status={appointment.status} />
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            <AppointmentSourceBadge appointment={appointment} />
+            <StatusBadge status={appointment.status} />
+          </div>
         </div>
 
         {/* Meta */}

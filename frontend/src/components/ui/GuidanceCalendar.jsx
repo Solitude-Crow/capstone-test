@@ -22,12 +22,16 @@
 //   isLoading      bool
 //
 import { useState, useMemo, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import {
   ChevronLeft, ChevronRight, CalendarDays,
   Clock, User, CheckCircle2, XCircle,
-  AlertCircle, X, Loader2,
+  AlertCircle, X, Loader2, Check, FileText, Users,
 } from 'lucide-react'
+import toast from 'react-hot-toast'
+import { appointmentAPI } from '@/api'
 import { formatTime, formatDateLong, STATUS_CLASS } from '@/lib/utils'
+import AppointmentSourceBadge from '@/components/ui/AppointmentSourceBadge'
 import { getHolidayName } from '@/lib/phHolidays'
 import {
   startOfMonth, endOfMonth, startOfWeek, endOfWeek,
@@ -53,8 +57,91 @@ const StatusPill = ({ status }) => {
   )
 }
 
+// ── Counselor quick actions (manage an appointment without leaving the calendar)
+// Allowed transitions mirror the backend: pending/rescheduled → accept/reject,
+// accepted → complete/cancel. Reject and cancel need a confirming second click.
+function CounselorApptActions({ appt, onUpdated }) {
+  const [busy, setBusy]                   = useState(null)
+  const [confirmAction, setConfirmAction] = useState(null)
+
+  const run = async (status) => {
+    setBusy(status)
+    try {
+      await appointmentAPI.updateStatus(appt._id, { status })
+      toast.success(`Appointment ${status}`)
+      onUpdated?.(appt._id, status)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Action failed')
+    } finally {
+      setBusy(null)
+      setConfirmAction(null)
+    }
+  }
+
+  // Destructive actions ask for a confirming second click
+  const ask = (status) => {
+    if (confirmAction === status) run(status)
+    else setConfirmAction(status)
+  }
+
+  const isPendingLike = ['pending', 'rescheduled'].includes(appt.status)
+  const isAccepted    = appt.status === 'accepted'
+  if (!isPendingLike && !isAccepted) return null
+
+  const btnBase = 'inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-semibold transition-colors disabled:opacity-50'
+
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-surface-200">
+      {isPendingLike && (
+        <>
+          <button
+            onClick={() => run('accepted')}
+            disabled={!!busy}
+            className={`${btnBase} bg-emerald-500 hover:bg-emerald-600 text-white`}
+          >
+            {busy === 'accepted' ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />}
+            Accept
+          </button>
+          <button
+            onClick={() => ask('rejected')}
+            disabled={!!busy}
+            className={`${btnBase} ${confirmAction === 'rejected'
+              ? 'bg-red-500 text-white'
+              : 'border border-red-200 text-red-600 hover:bg-red-50'}`}
+          >
+            {busy === 'rejected' ? <Loader2 size={10} className="animate-spin" /> : <XCircle size={10} />}
+            {confirmAction === 'rejected' ? 'Confirm reject?' : 'Reject'}
+          </button>
+        </>
+      )}
+      {isAccepted && (
+        <>
+          <button
+            onClick={() => run('completed')}
+            disabled={!!busy}
+            className={`${btnBase} bg-primary-500 hover:bg-primary-600 text-white`}
+          >
+            {busy === 'completed' ? <Loader2 size={10} className="animate-spin" /> : <CheckCircle2 size={10} />}
+            Complete
+          </button>
+          <button
+            onClick={() => ask('cancelled')}
+            disabled={!!busy}
+            className={`${btnBase} ${confirmAction === 'cancelled'
+              ? 'bg-red-500 text-white'
+              : 'border border-red-200 text-red-600 hover:bg-red-50'}`}
+          >
+            {busy === 'cancelled' ? <Loader2 size={10} className="animate-spin" /> : <XCircle size={10} />}
+            {confirmAction === 'cancelled' ? 'Confirm cancel?' : 'Cancel'}
+          </button>
+        </>
+      )}
+    </div>
+  )
+}
+
 // ── Day-detail panel (slides in from right on mobile, inline on desktop) ─────
-function DayPanel({ date, appointments, availability, role, onClose, onBookSlot, counselors }) {
+function DayPanel({ date, appointments, availability, role, onClose, onBookSlot, counselors, onAppointmentUpdate }) {
   const [selectedCounselor, setSelectedCounselor] = useState(null)
 
   const dateStr = format(date, 'yyyy-MM-dd')
@@ -245,6 +332,8 @@ function DayPanel({ date, appointments, availability, role, onClose, onBookSlot,
               {dayAppointments.map((appt) => {
                 const person = role === 'student' ? appt.counselorId : appt.studentId
                 const name = person?.fullName ?? person ?? '—'
+                const student = role === 'counselor' ? appt.studentId : null
+                const hasPreAssessment = appt.preAssessmentSubmitted || appt.preAssessmentId
                 return (
                   <div key={appt._id} className="p-3 bg-surface-50 rounded-xl border border-surface-200">
                     <div className="flex items-start justify-between gap-2 mb-1">
@@ -254,6 +343,12 @@ function DayPanel({ date, appointments, availability, role, onClose, onBookSlot,
                       </div>
                       <StatusPill status={appt.status} />
                     </div>
+                    {/* Student info (counselor view) */}
+                    {student && (student.studentIDnum || student.course) && (
+                      <p className="text-[10px] text-slate-400">
+                        {[student.studentIDnum, student.course, student.yearLevel].filter(Boolean).join(' · ')}
+                      </p>
+                    )}
                     <p className="text-[10px] text-slate-500">{appt.type}</p>
                     <p className="text-[10px] text-slate-400 mt-0.5">
                       {formatTime(appt.startTime)} – {formatTime(appt.endTime)}
@@ -262,6 +357,34 @@ function DayPanel({ date, appointments, availability, role, onClose, onBookSlot,
                       <p className="text-[10px] text-slate-400 italic mt-1 line-clamp-1">
                         "{appt.notes}"
                       </p>
+                    )}
+
+                    {role === 'counselor' && (
+                      <>
+                        {/* Source + linked records */}
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                          <AppointmentSourceBadge appointment={appt} />
+                          {hasPreAssessment && (
+                            <Link
+                              to={`/counselor/pre-assessments/appointment/${appt._id}`}
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold hover:bg-blue-200 transition-colors"
+                            >
+                              <FileText size={9} /> Pre-Assessment
+                            </Link>
+                          )}
+                          {appt.referralId && (
+                            <Link
+                              to="/counselor/referrals"
+                              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-100 text-violet-700 text-[10px] font-semibold hover:bg-violet-200 transition-colors"
+                            >
+                              <Users size={9} /> View Referral
+                            </Link>
+                          )}
+                        </div>
+
+                        {/* Quick actions */}
+                        <CounselorApptActions appt={appt} onUpdated={onAppointmentUpdate} />
+                      </>
                     )}
                   </div>
                 )
@@ -284,6 +407,7 @@ export default function GuidanceCalendar({
   counselors = [],
   onBookSlot,
   onMonthChange,
+  onAppointmentUpdate,
   isLoading = false,
 }) {
   const [currentMonth, setCurrentMonth] = useState(new Date())
@@ -553,6 +677,7 @@ export default function GuidanceCalendar({
               onClose={() => setSelectedDate(null)}
               onBookSlot={onBookSlot}
               counselors={counselors}
+              onAppointmentUpdate={onAppointmentUpdate}
             />
           </div>
         )}

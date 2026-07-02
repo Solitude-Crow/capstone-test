@@ -3,11 +3,13 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   ClipboardList, CalendarDays, BookOpen, Phone, Eye,
-  ArrowRight, Sparkles, Search, ChevronRight, CheckCircle2,
+  ArrowRight, Search, ChevronRight, CheckCircle2,
+  ArrowDownWideNarrow, ArrowUpNarrowWide,
 } from 'lucide-react'
 import { preAssessmentAPI } from '@/api'
 import { timeAgo, RISK_LEVEL_CONFIG } from '@/lib/utils'
 import EmptyState from '@/components/ui/EmptyState'
+import Pagination from '@/components/ui/Pagination'
 
 // Legacy (old AI submissions) — recommendedAction → display
 const ACTION_DISPLAY = {
@@ -20,21 +22,43 @@ const ACTION_DISPLAY = {
 export default function StudentPreAssessmentList() {
   const navigate = useNavigate()
   const [assessments, setAssessments] = useState([])
+  const [pagination, setPagination]   = useState({ total: 0, pages: 1 })
   const [loading, setLoading]         = useState(true)
   const [search, setSearch]           = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [sort, setSort]               = useState('newest') // 'newest' | 'oldest'
+  const [page, setPage]               = useState(1)
+  const [limit, setLimit]             = useState(10)
 
+  // Debounce the search box so we don't hit the API on every keystroke
   useEffect(() => {
-    preAssessmentAPI.getMyAll()
-      .then(({ data }) => setAssessments(data.assessments || []))
-      .catch(() => {})
-      .finally(() => setLoading(false))
-  }, [])
+    const t = setTimeout(() => {
+      setDebouncedSearch(search.trim())
+      setPage(1)
+    }, 400)
+    return () => clearTimeout(t)
+  }, [search])
 
-  const filtered = assessments.filter((a) => {
-    const term = search.toLowerCase()
-    const category = a.assessmentResults?.detectedCategory || a.primaryConcern || ''
-    return category.toLowerCase().includes(term)
-  })
+  // Server-side pagination — the API sorts, filters and pages for us
+  useEffect(() => {
+    let cancelled = false
+    async function fetchAssessments() {
+      setLoading(true)
+      try {
+        const { data } = await preAssessmentAPI.getMyAll({ page, limit, sort, search: debouncedSearch || undefined })
+        if (!cancelled) {
+          setAssessments(data.assessments || [])
+          setPagination(data.pagination || { total: 0, pages: 1 })
+        }
+      } catch {
+        // silently ignore
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    fetchAssessments()
+    return () => { cancelled = true }
+  }, [page, limit, sort, debouncedSearch])
 
   return (
     <div className="animate-fade-in max-w-4xl mx-auto px-2 lg:px-6">
@@ -52,16 +76,27 @@ export default function StudentPreAssessmentList() {
         </Link>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          type="text"
-          placeholder="Search by concern…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 bg-white text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 transition"
-        />
+      {/* Search + sort */}
+      <div className="flex flex-col sm:flex-row gap-2 mb-6">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search by concern…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-surface-200 bg-white text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-300 focus:border-primary-400 transition"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={() => { setSort((s) => (s === 'newest' ? 'oldest' : 'newest')); setPage(1) }}
+          className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-surface-200 bg-white text-xs font-semibold text-slate-600 hover:border-primary-300 transition-colors shrink-0"
+        >
+          {sort === 'newest'
+            ? <><ArrowDownWideNarrow size={14} /> Newest First</>
+            : <><ArrowUpNarrowWide size={14} /> Oldest First</>}
+        </button>
       </div>
 
       {/* List */}
@@ -69,14 +104,14 @@ export default function StudentPreAssessmentList() {
         <div className="space-y-4">
           {[1, 2, 3].map((i) => <div key={i} className="skeleton h-20 rounded-2xl" />)}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : assessments.length === 0 ? (
         <div className="card py-12">
           <EmptyState
             icon={ClipboardList}
-            title={search ? 'No results found' : 'No assessments yet'}
-            description={search ? 'Try a different search term' : 'Complete a pre-assessment to get personalized guidance'}
+            title={debouncedSearch ? 'No results found' : 'No assessments yet'}
+            description={debouncedSearch ? 'Try a different search term' : 'Complete a pre-assessment to get personalized guidance'}
             action={
-              !search && (
+              !debouncedSearch && (
                 <Link to="/student/pre-assessment" className="btn-primary text-sm border border-primary-600 rounded-xl px-4 py-2">
                   Start Now
                 </Link>
@@ -86,7 +121,7 @@ export default function StudentPreAssessmentList() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((a) => {
+          {assessments.map((a) => {
             const ar       = a.assessmentResults
             const riskCfg  = ar?.riskLevel ? RISK_LEVEL_CONFIG[ar.riskLevel] : null
             const category = ar?.detectedCategory || a.primaryConcern || 'Pre-Assessment'
@@ -146,11 +181,18 @@ export default function StudentPreAssessmentList() {
         </div>
       )}
 
-      {/* Count footer */}
-      {!loading && filtered.length > 0 && (
-        <p className="text-xs text-slate-400 text-center mt-6 pb-8">
-          Showing {filtered.length} of {assessments.length} assessment{assessments.length !== 1 ? 's' : ''}
-        </p>
+      {/* Pagination */}
+      {!loading && pagination.total > 0 && (
+        <div className="mt-6 pb-8">
+          <Pagination
+            page={page}
+            pages={pagination.pages || 1}
+            total={pagination.total}
+            limit={limit}
+            onPageChange={setPage}
+            onLimitChange={(n) => { setLimit(n); setPage(1) }}
+          />
+        </div>
       )}
     </div>
   )

@@ -13,6 +13,7 @@ import { appointmentAPI } from '@/api'
 import { formatDate, formatTime } from '@/lib/utils'
 import PageBanner    from '@/components/ui/PageBanner'
 import StatusBadge   from '@/components/ui/StatusBadge'
+import AppointmentSourceBadge from '@/components/ui/AppointmentSourceBadge'
 import FilterTabs    from '@/components/ui/FilterTabs'
 import Modal         from '@/components/ui/Modal'
 import EmptyState    from '@/components/ui/EmptyState'
@@ -84,6 +85,14 @@ const MobileCard = memo(({ appt, onAction, loadingActions }) => {
           <p className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
             <CalendarDays size={11} /> {formatDate(appt.date)} · {formatTime(appt.startTime)}
           </p>
+          <div className="mt-1.5">
+            <AppointmentSourceBadge appointment={appt} showStudentBooking />
+          </div>
+          {appt.referralId?.facultyId?.fullName && (
+            <p className="text-[11px] text-violet-600 mt-1">
+              Referred by {appt.referralId.facultyId.fullName}
+            </p>
+          )}
         </div>
       </div>
 
@@ -193,8 +202,18 @@ const TableRow = memo(({ appt, onAction, loadingActions }) => {
           </div>
         </div>
       </td>
-      {/* Type */}
-      <td className="px-5 py-4 text-sm text-gray-700">{appt.type}</td>
+      {/* Type + source */}
+      <td className="px-5 py-4">
+        <p className="text-sm text-gray-700">{appt.type}</p>
+        <div className="mt-1">
+          <AppointmentSourceBadge appointment={appt} showStudentBooking />
+        </div>
+        {appt.referralId?.facultyId?.fullName && (
+          <p className="text-[11px] text-violet-600 mt-0.5">
+            Referred by {appt.referralId.facultyId.fullName}
+          </p>
+        )}
+      </td>
       {/* Date/Time */}
       <td className="px-5 py-4">
         <p className="text-sm text-gray-900 flex items-center gap-1">
@@ -442,6 +461,7 @@ export default function AppointmentRequest() {
                 <p className="text-xs text-gray-400">{selectedAppt.type} · {formatDate(selectedAppt.date)}</p>
               </div>
               <StatusBadge status={selectedAppt.status} />
+              <AppointmentSourceBadge appointment={selectedAppt} />
             </div>
             <NotesContent appt={selectedAppt} />
           </>

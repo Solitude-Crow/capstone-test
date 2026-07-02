@@ -21,6 +21,7 @@ import PreAssessmentForm          from '@/pages/student/PreAssessmentForm'
 import PreAssessmentResults       from '@/pages/student/PreAssessmentResults'
 import StudentPreAssessmentList   from '@/pages/student/StudentPreAssessmentList'
 import StudentPreAssessmentDetail from '@/pages/student/StudentPreAssessmentDetail'
+import StudentReferrals           from '@/pages/student/StudentReferrals'
 import Notifications              from '@/pages/shared/Notifications'
 import Profile                    from '@/pages/shared/Profile'
 
@@ -108,6 +109,7 @@ export default function App() {
         <Route path="/student/dashboard"                      element={<Protected role="student"><StudentDashboard /></Protected>} />
         <Route path="/student/book"                           element={<Protected role="student"><BookAppointment /></Protected>} />
         <Route path="/student/appointments"                   element={<Protected role="student"><MyAppointments /></Protected>} />
+        <Route path="/student/referrals"                      element={<Protected role="student"><StudentReferrals /></Protected>} />
         <Route path="/student/pre-assessments"                element={<Protected role="student"><StudentPreAssessmentList /></Protected>} />
         <Route path="/student/pre-assessment/results"         element={<Protected role="student"><PreAssessmentResults /></Protected>} />
         <Route path="/student/pre-assessment/:appointmentId?" element={<Protected role="student"><PreAssessmentForm /></Protected>} />

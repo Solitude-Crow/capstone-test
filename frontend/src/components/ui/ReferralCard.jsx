@@ -134,7 +134,8 @@ export default function ReferralCard({
 
       {/* Meta row */}
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-        {viewerRole === 'counselor' && faculty && (
+        {/* Counselors and students both see who submitted the referral */}
+        {viewerRole !== 'faculty' && faculty && (
           <span className="flex items-center gap-1">
             <User size={11} />
             {faculty.fullName}

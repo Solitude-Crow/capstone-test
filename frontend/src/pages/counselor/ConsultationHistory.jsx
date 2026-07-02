@@ -11,9 +11,11 @@ import PageBanner   from '@/components/ui/PageBanner'
 import EmptyState   from '@/components/ui/EmptyState'
 import SkeletonList from '@/components/ui/SkeletonList'
 import Avatar       from '@/components/ui/Avatar'
+import AppointmentSourceBadge from '@/components/ui/AppointmentSourceBadge'
 
 // ── Student list view ─────────────────────────────────────────────────────────
-function StudentList({ onSelect }) {
+// Exported for reuse in the Reports → Student History tab.
+export function StudentList({ onSelect }) {
   const [students, setStudents] = useState([])
   const [loading,  setLoading]  = useState(true)
   const [search,   setSearch]   = useState('')
@@ -100,7 +102,8 @@ function StatusPill({ status }) {
 }
 
 // ── Student history detail view ───────────────────────────────────────────────
-function StudentHistoryView({ student, onBack }) {
+// Exported for reuse in the Reports → Student History tab.
+export function StudentHistoryView({ student, onBack }) {
   const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({ status: '', category: '', startDate: '', endDate: '' })
@@ -250,12 +253,21 @@ function StudentHistoryView({ student, onBack }) {
                         {formatDate(appt.date)} · {formatTime(appt.startTime)} – {formatTime(appt.endTime)}
                       </p>
                     </div>
-                    <StatusPill status={appt.status} />
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      <AppointmentSourceBadge appointment={appt} showStudentBooking />
+                      <StatusPill status={appt.status} />
+                    </div>
                   </div>
 
                   {appt.counselorId?.fullName && (
                     <p className="text-xs text-slate-500 mb-1">
                       Counselor: {appt.counselorId.fullName}
+                    </p>
+                  )}
+                  {appt.referralId?.facultyId?.fullName && (
+                    <p className="text-xs text-violet-600 mb-1">
+                      Referred by {appt.referralId.facultyId.fullName}
+                      {appt.referralId.facultyId.department && ` · ${appt.referralId.facultyId.department}`}
                     </p>
                   )}
 

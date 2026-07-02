@@ -73,6 +73,11 @@ export default function CounselorDashboard() {
     setCalendarMonth(newMonth)
   }, [])
 
+  // Reflect calendar quick actions (accept/reject/complete/cancel) locally
+  const handleAppointmentUpdate = useCallback((id, status) => {
+    setAppointments((prev) => prev.map((a) => (a._id === id ? { ...a, status } : a)))
+  }, [])
+
   const today = new Date().toDateString()
   const todayAppts = appointments.filter((a) =>
     new Date(a.date).toDateString() === today && ['accepted', 'pending'].includes(a.status)
@@ -180,6 +185,7 @@ export default function CounselorDashboard() {
           availability={availability}
           isLoading={loadingCalendar}
           onMonthChange={handleCalendarMonthChange}
+          onAppointmentUpdate={handleAppointmentUpdate}
         />
       </div>
 

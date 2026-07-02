@@ -180,6 +180,14 @@ export const getMyAppointments = async (req, res) => {
       Appointment.find(query)
         .populate("studentId", "fullName email studentIDnum course yearLevel profilePic")
         .populate("counselorId", "fullName email specialization profilePic")
+        // Source metadata: referralId present ⇒ appointment originated from a
+        // faculty referral (vs. a direct student booking). Faculty info powers
+        // the "Referred by …" audit trail in the UI.
+        .populate({
+          path: "referralId",
+          select: "facultyId priorityLevel status",
+          populate: { path: "facultyId", select: "fullName department" },
+        })
         .sort({ date: -1, startTime: -1 })
         .skip(skip)
         .limit(parseInt(limit))

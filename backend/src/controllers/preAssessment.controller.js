@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import PreAssessment from "../models/preAssessment.model.js";
 import Appointment from "../models/appointment.model.js";
 import Notification from "../models/notification.model.js";
+import User from "../models/user.model.js";
 import { emitNotificationEvent } from "../services/socket.js";
 import { sendPreAssessmentSubmitted } from "../services/email.js";
 import { generateSummaries } from "../services/ai.js";
@@ -256,14 +257,28 @@ export const linkToAppointment = async (req, res) => {
 };
 
 // ── Get Student's Own Pre-Assessments ────────────────────────────────────────
+// Escape user input before embedding it in a RegExp
+const escapeRegex = (str = "") => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 export const getMyPreAssessments = async (req, res) => {
   try {
     const studentId = req.user._id;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, sort = "newest", search } = req.query;
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
+    const query = { studentId };
+    if (search) {
+      const rx = new RegExp(escapeRegex(search), "i");
+      query.$or = [
+        { "assessmentResults.detectedCategory": rx },
+        { primaryConcern: rx },
+        { concernDescription: rx },
+      ];
+    }
+    const sortSpec = sort === "oldest" ? { createdAt: 1 } : { createdAt: -1 };
+
     const [assessments, total] = await Promise.all([
-      PreAssessment.find({ studentId })
+      PreAssessment.find(query)
         // Strip counselor-only fields — students must not receive these in their list.
         .select(
           "-aiRecommendations.rawResponse -aiRecommendations.counselorTips " +
@@ -271,11 +286,11 @@ export const getMyPreAssessments = async (req, res) => {
           "-accessLog"
         )
         .populate("appointmentId", "type date startTime endTime status")
-        .sort({ createdAt: -1 })
+        .sort(sortSpec)
         .skip(skip)
         .limit(parseInt(limit))
         .lean(),
-      PreAssessment.countDocuments({ studentId }),
+      PreAssessment.countDocuments(query),
     ]);
 
     res.json({
@@ -414,28 +429,57 @@ export const getPreAssessmentByAppointment = async (req, res) => {
 export const getCounselorPreAssessments = async (req, res) => {
   try {
     const counselorId = req.user._id;
-    const { status, page = 1, limit = 10 } = req.query;
+    const {
+      status, page = 1, limit = 10, sort = "newest",
+      search, course, yearLevel, riskLevel, category, startDate, endDate,
+    } = req.query;
 
     // A counselor sees pre-assessments explicitly linked to them, plus those from
     // any student they have an appointment with — so submitted results reach the
     // counselor even if the student never linked them during booking.
     const apptStudentIds = (await Appointment.distinct("studentId", { counselorId })).filter(Boolean);
 
-    const query = {
+    const conditions = [{
       $or: [
         { authorizedCounselorId: counselorId },
         { studentId: mongoose.trusted({ $in: apptStudentIds }) },
       ],
-    };
-    if (status) query.status = status;
+    }];
+    if (status)    conditions.push({ status });
+    if (riskLevel) conditions.push({ "assessmentResults.riskLevel": riskLevel });
+    if (category) {
+      const rx = new RegExp(escapeRegex(category), "i");
+      conditions.push({ $or: [{ "assessmentResults.detectedCategory": rx }, { primaryConcern: rx }] });
+    }
+    if (startDate || endDate) {
+      const range = {};
+      if (startDate) range.$gte = new Date(startDate);
+      if (endDate)   range.$lte = new Date(new Date(endDate).setHours(23, 59, 59, 999));
+      conditions.push({ createdAt: mongoose.trusted(range) });
+    }
+    // Student-attribute filters (name/ID search, course, year level) resolve to
+    // a set of matching student ids first, then constrain the main query.
+    if (search || course || yearLevel) {
+      const userQuery = { role: "student" };
+      if (search) {
+        const rx = new RegExp(escapeRegex(search), "i");
+        userQuery.$or = [{ fullName: rx }, { studentIDnum: rx }];
+      }
+      if (course)    userQuery.course    = course;
+      if (yearLevel) userQuery.yearLevel = yearLevel;
+      const matchingIds = await User.find(userQuery).distinct("_id");
+      conditions.push({ studentId: mongoose.trusted({ $in: matchingIds }) });
+    }
 
+    const query = { $and: conditions };
+    const sortSpec = sort === "oldest" ? { createdAt: 1 } : { createdAt: -1 };
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const [assessments, total] = await Promise.all([
       PreAssessment.find(query)
         .populate("studentId", "fullName email studentIDnum course yearLevel profilePic")
         .populate("appointmentId", "type date startTime endTime status")
-        .sort({ createdAt: -1 })
+        .sort(sortSpec)
         .skip(skip)
         .limit(parseInt(limit))
         .lean(),
@@ -494,6 +538,7 @@ export const generateSummaryReport = async (req, res) => {
       byRiskLevel: {},
       byDetectedCategory: {},
       byRecommendedAction: {},
+      byMonth:     {},
       urgencyFlags: 0,
       reviewed: 0,
       pending:  0,
@@ -522,6 +567,13 @@ export const generateSummaryReport = async (req, res) => {
       // Legacy action
       const action = a.aiRecommendations?.recommendedAction || "unknown";
       stats.byRecommendedAction[action] = (stats.byRecommendedAction[action] || 0) + 1;
+
+      // Monthly submissions (yyyy-MM keys, sortable)
+      if (a.createdAt) {
+        const d = new Date(a.createdAt);
+        const mkey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        stats.byMonth[mkey] = (stats.byMonth[mkey] || 0) + 1;
+      }
 
       // Urgency flag: Critical risk or Immediate urgency
       if (
