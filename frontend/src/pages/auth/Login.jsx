@@ -71,19 +71,7 @@ export default function Login() {
             Access guidance counseling services, schedule appointments, and get the support you need — all in one place.
           </p>
         </div>
-
-        <div className="relative flex gap-4">
-          {[
-            { num: '500+', label: 'Students Served'   },
-            { num: '15+',  label: 'Counselors'         },
-            { num: '98%',  label: 'Satisfaction Rate'  },
-          ].map(({ num, label }) => (
-            <div key={label} className="bg-white/10 rounded-2xl p-4 flex-1">
-              <p className="font-display text-2xl text-white">{num}</p>
-              <p className="text-white/50 text-xs mt-1">{label}</p>
-            </div>
-          ))}
-        </div>
+        
       </div>
 
       {/* ── Right panel ── */}
