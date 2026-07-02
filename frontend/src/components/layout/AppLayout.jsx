@@ -1,11 +1,12 @@
 // src/components/layout/AppLayout.jsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Menu, Bell } from 'lucide-react'
 import Sidebar from './Sidebar'
 import { useNotificationStore } from '@/store/notificationStore'
 import { useAuthStore } from '@/store/authStore'
 import { usePresenceSync } from '@/hooks/usePresenceSync'
 import { useSocket } from '@/hooks/useSocket'
+import { useSidebarSwipe } from '@/hooks/useSidebarSwipe'
 import Avatar from '@/components/ui/Avatar'
 import { Link } from 'react-router-dom'
 
@@ -23,6 +24,12 @@ export default function AppLayout({ children }) {
 
   const notifPath   = user?.role === 'counselor' ? '/counselor/notifications' : '/student/notifications'
   const profilePath = user?.role === 'counselor' ? '/counselor/profile'       : '/student/profile'
+
+  // Edge-swipe gestures (mobile): swipe right from the left edge to open,
+  // swipe left to close. Complements the hamburger + overlay.
+  const openMobile  = useCallback(() => setMobileOpen(true), [])
+  const closeMobile = useCallback(() => setMobileOpen(false), [])
+  useSidebarSwipe({ isOpen: mobileOpen, onOpen: openMobile, onClose: closeMobile })
 
   // Close mobile menu on window resize to desktop
   useEffect(() => {
@@ -47,7 +54,10 @@ export default function AppLayout({ children }) {
         onMobileClose={() => setMobileOpen(false)}
       />
 
-      <div className={`flex-1 flex flex-col transition-all duration-300 ${marginClass}`}>
+      {/* min-w-0 is critical: without it this flex child adopts min-width:auto
+          and any wide/nowrap descendant (tables, trends, long labels) forces
+          the whole page wider than the viewport, causing horizontal scroll. */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${marginClass}`}>
         {/* Top bar */}
         <header className="topbar">
           {/* Mobile hamburger — only shown on small screens */}
@@ -81,8 +91,10 @@ export default function AppLayout({ children }) {
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 page-inner animate-fade-in">
+        {/* Page content — overflow-x-clip is a safety net so a stray wide child
+            can never introduce a page-level horizontal scrollbar. Inner
+            `overflow-x-auto` regions keep their own scroll and are unaffected. */}
+        <main className="flex-1 page-inner animate-fade-in overflow-x-clip">
           {children}
         </main>
       </div>

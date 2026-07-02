@@ -1,11 +1,11 @@
 // src/pages/auth/Signup.jsx
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, UserPlus, ChevronLeft, ChevronRight, Check } from 'lucide-react'
+import { Eye, EyeOff, UserPlus, ChevronLeft, ChevronRight, Check, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { BrandLockup } from '@/components/ui/BrandLogo'
 import GoogleAuthButton from '@/components/ui/GoogleAuthButton'
-import { COURSES, YEAR_LEVELS } from '@/lib/utils'
+import { COURSES, YEAR_LEVELS, isValidEmail } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 const STEPS = ['Role', 'Account', 'Details']
@@ -155,6 +155,7 @@ function RoleStep({ value, onChange }) {
 // ── Account info step ─────────────────────────────────────────────────────────
 function AccountStep({ form, onChange, showPass, onTogglePass }) {
   const set = (k, v) => onChange({ ...form, [k]: v })
+  const emailInvalid = form.email.length > 0 && !isValidEmail(form.email)
   return (
     <div className="space-y-4 animate-fade-in">
       <h3 className="font-display text-xl text-base-content mb-4">Account details</h3>
@@ -176,13 +177,20 @@ function AccountStep({ form, onChange, showPass, onTogglePass }) {
         <label className="field-label">Email Address</label>
         <input
           type="email"
-          className="field-input"
+          className={`field-input ${emailInvalid ? 'field-error' : ''}`}
           placeholder="you@mkd.edu.ph"
           value={form.email}
           onChange={(e) => set('email', e.target.value)}
           required
           autoComplete="email"
+          aria-invalid={emailInvalid}
         />
+        {emailInvalid && (
+          <p className="mt-1.5 flex items-center gap-1 text-xs text-brand-error">
+            <AlertCircle size={13} className="shrink-0" />
+            Please enter a valid email address.
+          </p>
+        )}
       </div>
 
       <div>
@@ -326,6 +334,8 @@ export default function Signup() {
   const { signup, isLoading } = useAuthStore()
   const [step,     setStep]   = useState(0)
   const [showPass, setShowPass] = useState(false)
+  // Inline submit failure (e.g. email already registered), cleared on any edit.
+  const [submitError, setSubmitError] = useState('')
   const [form, setForm] = useState({
     role: '', fullName: '', email: '', password: '',
     // Student
@@ -336,20 +346,32 @@ export default function Signup() {
     department: '', facultyId: '',
   })
 
+  // Wraps setForm so any field edit dismisses a stale submit warning.
+  const updateForm = (next) => {
+    setForm(next)
+    if (submitError) setSubmitError('')
+  }
+
+  const goStep = (next) => {
+    setSubmitError('')
+    setStep(next)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setSubmitError('')
     try {
       const data = await signup(form)
       toast.success(`Welcome, ${data.fullName}!`)
       navigate(ROLE_HOME[data.role] ?? '/student/dashboard')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Signup failed')
+      setSubmitError(err.response?.data?.message || 'Signup failed. Please check your details and try again.')
     }
   }
 
   const canNext = () => {
     if (step === 0) return !!form.role
-    if (step === 1) return form.fullName && form.email && isPasswordValid(form.password)
+    if (step === 1) return form.fullName && isValidEmail(form.email) && isPasswordValid(form.password)
     // Step 2 — role-specific required fields
     if (form.role === 'student')   return form.studentIDnum && form.yearLevel && form.course
     if (form.role === 'counselor') return !!form.specialization.trim()
@@ -394,13 +416,24 @@ export default function Signup() {
               {step === 1 && (
                 <AccountStep
                   form={form}
-                  onChange={setForm}
+                  onChange={updateForm}
                   showPass={showPass}
                   onTogglePass={() => setShowPass((v) => !v)}
                 />
               )}
               {step === 2 && (
-                <DetailsStep form={form} onChange={setForm} />
+                <DetailsStep form={form} onChange={updateForm} />
+              )}
+
+              {/* Submit failure warning (e.g. email already registered) */}
+              {submitError && (
+                <div
+                  role="alert"
+                  className="mt-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-brand-error"
+                >
+                  <AlertCircle size={15} className="mt-0.5 shrink-0" />
+                  <span>{submitError}</span>
+                </div>
               )}
 
               {/* Navigation */}
@@ -408,7 +441,7 @@ export default function Signup() {
                 {step > 0 ? (
                   <button
                     type="button"
-                    onClick={() => setStep((s) => s - 1)}
+                    onClick={() => goStep(step - 1)}
                     className="btn btn-ghost btn-sm gap-1"
                   >
                     <ChevronLeft size={15} /> Back
@@ -423,7 +456,7 @@ export default function Signup() {
                   <button
                     type="button"
                     disabled={!canNext()}
-                    onClick={() => setStep((s) => s + 1)}
+                    onClick={() => goStep(step + 1)}
                     className="btn btn-primary btn-sm gap-1"
                   >
                     Continue <ChevronRight size={15} />

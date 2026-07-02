@@ -45,6 +45,12 @@ export const getInitials = (name = '') => {
     .slice(0, 2)
 }
 
+// Lightweight email format check for inline form validation (client-side hint
+// only — the backend remains the source of truth). Requires a single @, a
+// non-empty local part, and a dotted domain.
+export const isValidEmail = (email = '') =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+
 export const STATUS_COLORS = {
   pending:     'badge-pending',
   accepted:    'badge-accepted',

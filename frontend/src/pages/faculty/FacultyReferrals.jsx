@@ -316,7 +316,7 @@ export default function FacultyReferrals() {
         title="My Referrals"
         subtitle="Track all students you have referred for counseling"
         action={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={fetch}
               disabled={loading}

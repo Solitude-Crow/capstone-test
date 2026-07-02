@@ -341,19 +341,20 @@ export default function Reports() {
 
       {tab === 'overview' && (
         <>
-          {/* Date range — the report refreshes automatically on change */}
-          <div className="card mb-6 flex items-end gap-4 flex-wrap">
-            <div className="min-w-[160px]">
+          {/* Date range — the report refreshes automatically on change.
+              Stacks vertically on phones, sits on one row from `sm` up. */}
+          <div className="card mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+            <div className="w-full sm:w-auto sm:min-w-[160px]">
               <label className="field-label">From</label>
               <DatePicker selected={startDate} onChange={setStartDate}
                 className="field-input" dateFormat="MMM d, yyyy" />
             </div>
-            <div className="min-w-[160px]">
+            <div className="w-full sm:w-auto sm:min-w-[160px]">
               <label className="field-label">To</label>
               <DatePicker selected={endDate} onChange={setEndDate}
                 className="field-input" dateFormat="MMM d, yyyy" minDate={startDate} />
             </div>
-            <button onClick={fetchReport} disabled={loading} className="btn btn-outline btn-primary gap-1.5">
+            <button onClick={fetchReport} disabled={loading} className="btn btn-outline btn-primary gap-1.5 w-full sm:w-auto">
               <RefreshCw size={15} className={loading ? 'animate-spin' : ''} /> {loading ? 'Loading…' : 'Refresh'}
             </button>
           </div>

@@ -75,14 +75,18 @@ function CheckPill({ label, checked, onChange }) {
 }
 
 // ── Likert radio row ──────────────────────────────────────────────────────────
+// The five options stay on one row (a Likert scale reads as a continuum) but use
+// `minmax(0,1fr)` tracks (Tailwind's grid-cols-5) so they shrink to fit instead
+// of overflowing, a fixed min-height for an accessible tap target, and tighter
+// gaps/padding on phones to keep the word labels readable down to 320px.
 function LikertRow({ statement, index, value, onChange }) {
   return (
     <div className="pb-5 border-b border-slate-100 last:border-0 last:pb-0">
-      <p className="text-sm font-medium text-slate-700 mb-3">
+      <p className="text-sm font-medium text-slate-700 mb-3 break-words">
         <span className="text-primary-500 font-bold mr-1.5">{index + 1}.</span>
         {statement}
       </p>
-      <div className="grid grid-cols-5 gap-2">
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
         {[1, 2, 3, 4, 5].map((score) => {
           const isSelected = value === score
           const colors =
@@ -93,14 +97,16 @@ function LikertRow({ statement, index, value, onChange }) {
             <button
               key={score}
               type="button"
+              aria-pressed={isSelected}
+              aria-label={`${score} – ${LIKERT_LABELS[score]}`}
               onClick={() => onChange(score)}
-              className={`p-2 rounded-xl border-2 text-center transition-all duration-150
+              className={`flex flex-col items-center justify-center gap-0.5 min-h-[3.25rem] px-0.5 py-2 rounded-xl border-2 text-center transition-all duration-150
                 ${isSelected
                   ? colors.sel + ' font-semibold'
                   : `border-slate-200 text-slate-500 ${colors.hover} hover:bg-slate-50`}`}
             >
-              <span className="block text-xs font-bold">{score}</span>
-              <span className="block text-[9px] leading-tight mt-0.5">{LIKERT_LABELS[score]}</span>
+              <span className="text-xs font-bold leading-none">{score}</span>
+              <span className="text-[9px] leading-tight">{LIKERT_LABELS[score]}</span>
             </button>
           )
         })}
@@ -271,7 +277,7 @@ export default function PreAssessmentForm() {
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 lg:p-10">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-8 lg:p-10">
         <WizardSteps steps={STEPS} current={step} />
 
         {/* ── Step 0: Student Information ── */}
@@ -646,7 +652,7 @@ export default function PreAssessmentForm() {
             {/* Student Information */}
             <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
               <p className="text-xs text-slate-500 mb-2 font-semibold uppercase tracking-wide">Student Information</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
                 <p className="text-slate-600">Name: <span className="text-slate-800 font-medium">{user?.fullName || '—'}</span></p>
                 <p className="text-slate-600">Student ID: <span className="text-slate-800 font-medium">{user?.studentIDnum || '—'}</span></p>
                 <p className="text-slate-600">Course: <span className="text-slate-800 font-medium">{user?.course || '—'}</span></p>
@@ -727,9 +733,9 @@ export default function PreAssessmentForm() {
         )}
 
         {/* ── Navigation ── */}
-        <div className="flex items-center justify-between gap-3 mt-10 pt-6 border-t border-slate-100">
+        <div className="flex items-center justify-between gap-3 mt-8 sm:mt-10 pt-6 border-t border-slate-100">
           {step > 0 ? (
-            <button onClick={() => setStep(step - 1)} className="btn btn-outline gap-1.5 min-w-[120px] justify-center">
+            <button onClick={() => setStep(step - 1)} className="btn btn-outline gap-1.5 min-w-[96px] sm:min-w-[120px] justify-center">
               <ChevronLeft size={16} /> Back
             </button>
           ) : <div />}
@@ -738,7 +744,7 @@ export default function PreAssessmentForm() {
             <button
               disabled={!canNext()}
               onClick={() => setStep(step + 1)}
-              className="btn btn-primary gap-1.5 min-w-[140px] justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+              className="btn btn-primary gap-1.5 min-w-[120px] sm:min-w-[140px] justify-center disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Continue <ChevronRight size={16} />
             </button>
@@ -746,7 +752,7 @@ export default function PreAssessmentForm() {
             <button
               onClick={handleSubmit}
               disabled={submitting || !canNext()}
-              className="btn btn-primary gap-1.5 min-w-[160px] justify-center disabled:opacity-50"
+              className="btn btn-primary gap-1.5 min-w-[140px] sm:min-w-[160px] justify-center disabled:opacity-50"
             >
               {submitting ? (
                 <><Loader2 size={16} className="animate-spin" /> Analyzing...</>

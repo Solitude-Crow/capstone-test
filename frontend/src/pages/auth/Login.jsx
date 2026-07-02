@@ -1,8 +1,9 @@
 // src/pages/auth/Login.jsx
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, LogIn } from 'lucide-react'
+import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
+import { isValidEmail } from '@/lib/utils'
 import { BrandLockup } from '@/components/ui/BrandLogo'
 import GoogleAuthButton from '@/components/ui/GoogleAuthButton'
 import toast from 'react-hot-toast'
@@ -18,15 +19,37 @@ export default function Login() {
   const { login, isLoading } = useAuthStore()
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPass, setShowPass] = useState(false)
+  // Inline auth failure (wrong email/password). Cleared as soon as the user
+  // edits either field so the warning never lingers after a correction.
+  const [authError, setAuthError] = useState('')
+
+  // Live email-format hint — shown only once the field is non-empty.
+  const emailInvalid = form.email.length > 0 && !isValidEmail(form.email)
+
+  const updateField = (key, value) => {
+    setForm((f) => ({ ...f, [key]: value }))
+    if (authError) setAuthError('')
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setAuthError('')
+    if (!isValidEmail(form.email)) {
+      setAuthError('Please enter a valid email address.')
+      return
+    }
     try {
       const data = await login(form)
       toast.success(`Welcome back, ${data.fullName}!`)
       navigate(ROLE_HOME[data.role] ?? '/student/dashboard')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed')
+      // 401 → wrong credentials; show a single inline warning below the fields.
+      const status = err.response?.status
+      setAuthError(
+        status === 401 || status === 400
+          ? 'Incorrect email or password. Please try again.'
+          : err.response?.data?.message || 'Login failed. Please try again.'
+      )
     }
   }
 
@@ -77,18 +100,25 @@ export default function Login() {
             <p className="text-base-content/50 mt-1 text-sm">Sign in to your account to continue</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div>
               <label className="field-label">Email address</label>
               <input
                 type="email"
-                className="field-input"
+                className={`field-input ${emailInvalid || authError ? 'field-error' : ''}`}
                 placeholder="you@mkd.edu.ph"
                 value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onChange={(e) => updateField('email', e.target.value)}
                 required
                 autoComplete="email"
+                aria-invalid={emailInvalid || !!authError}
               />
+              {emailInvalid && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs text-brand-error">
+                  <AlertCircle size={13} className="shrink-0" />
+                  Please enter a valid email address.
+                </p>
+              )}
             </div>
 
             <div>
@@ -101,12 +131,13 @@ export default function Login() {
               <div className="relative">
                 <input
                   type={showPass ? 'text' : 'password'}
-                  className="field-input pr-11"
+                  className={`field-input pr-11 ${authError ? 'field-error' : ''}`}
                   placeholder="Enter your password"
                   value={form.password}
-                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  onChange={(e) => updateField('password', e.target.value)}
                   required
                   autoComplete="current-password"
+                  aria-invalid={!!authError}
                 />
                 <button
                   type="button"
@@ -118,6 +149,17 @@ export default function Login() {
                 </button>
               </div>
             </div>
+
+            {/* Auth failure warning (wrong email/password) */}
+            {authError && (
+              <div
+                role="alert"
+                className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-brand-error"
+              >
+                <AlertCircle size={15} className="mt-0.5 shrink-0" />
+                <span>{authError}</span>
+              </div>
+            )}
 
             <button
               type="submit"

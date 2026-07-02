@@ -740,6 +740,17 @@
     border-color: #fecaca;       /* red-200 */
     background-color: #fef2f2;   /* red-50 */
   }
+
+  /* ── Mobile density (< 640px) ─────────────────────────────────
+     Trim the generous desktop card padding on phones so content has
+     more usable width and long labels stop clipping. Tablet (≥640)
+     and desktop (≥1024) paddings above are intentionally untouched. */
+  @media (max-width: 639.98px) {
+    .mkd-card,
+    .mkd-card-hover,
+    .card:not(:has(> .card-body)) { padding: 1.25rem; }
+    .page-banner { padding: 1.25rem; }
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────

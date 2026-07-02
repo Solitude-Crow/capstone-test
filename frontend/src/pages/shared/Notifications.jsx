@@ -303,7 +303,7 @@ export default function Notifications() {
         title="Notifications"
         subtitle={counts.unread > 0 ? `${counts.unread} unread` : "All caught up!"}
         action={
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button onClick={handleRefresh} className="btn btn-white btn-sm gap-1.5 shadow" disabled={isLoading}>
               <RefreshCw size={14} className={isLoading ? "animate-spin" : ""} /> Refresh
             </button>
